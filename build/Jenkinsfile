@@ -24,9 +24,10 @@ pipeline {
         sh 'mvn clean package -P${ENV_BRANCH} -Dmaven.test.skip=true'
       }
     }
+
     stage('cp') {
       steps {
-        sh '/usr/bin/cp -f ${PROJECT_NAME}/target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
+        sh '/usr/bin/cp -f ./target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
       }
     }
 	
