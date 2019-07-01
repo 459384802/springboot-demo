@@ -1,19 +1,17 @@
 package yhc.code.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author yanghanchun
  * @date 2019/7/1 15:49
  * @Description:
  */
-@Controller
+@RestController
 public class IndexController {
-    @Value("${yhc.index}")
+    @Value("${yhc.branch}")
     private String branch;
 
     @GetMapping("/")
