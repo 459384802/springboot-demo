@@ -1,0 +1,59 @@
+pipeline {
+  agent any
+  
+  parameters {
+	choice(name:'branch',choices:'dev\ntest\nuat\npro',description:'环境参数')
+  }
+  environment {
+    PROJECT_NAME = 'springboot-demo'
+	REPOSITORIES_ADDRESS = '192.168.86.147:5000'
+	DOCKERFILE_SOURCE = './build/Dockerfile'
+	DOCKERFILE_TARGET = '/data/dockerfile'
+	ENV_BRANCH = "${params.branch}"
+  }
+  
+  stages {
+    stage('CreatePath') {
+      steps {
+        sh "mkdir -p ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
+      }
+    }
+	
+	stage('compile') {
+      steps {
+        sh 'mvn clean package -P${ENV_BRANCH} -Dmaven.test.skip=true'
+      }
+    }
+    stage('cp') {
+      steps {
+        sh '/usr/bin/cp -f ${PROJECT_NAME}/target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
+      }
+    }
+	
+	stage('dockerfile') {
+	  environment {
+		dockerfile_path = "${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
+	  }
+      steps {
+        sh '/usr/bin/cp -f ${DOCKERFILE_SOURCE} ${dockerfile_path}/ && sed -i "s/branch/${ENV_BRANCH}/" ${dockerfile_path}/Dockerfile'
+      }
+    }
+	
+	stage('build') {
+      steps {
+        sh 'docker build -t ${REPOSITORIES_ADDRESS}/${PROJECT_NAME} ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/Dockerfile'
+      }
+    }
+	stage('push') {
+      steps {
+        sh 'docker push ${REPOSITORIES_ADDRESS}/${PROJECT_NAME}'
+      }
+    }
+    stage('deploy') {
+      steps {
+        sh 'docker stack deploy -c docker-compose.yml ${PROJECT_NAME}'
+      }
+    }
+	
+  }
+}
