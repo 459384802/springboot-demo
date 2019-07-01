@@ -1,7 +1,9 @@
 # Maven
 target/
+.mvn/
 *.ser
 *.ec
+mvnw
 
 # IntelliJ Idea
 .idea/
@@ -9,7 +11,7 @@ out/
 *.ipr
 *.iws
 *.iml
-.cmd
+*.cmd
 
 # Eclipse
 .classpath
