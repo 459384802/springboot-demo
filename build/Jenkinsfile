@@ -13,24 +13,23 @@ pipeline {
   }
   
   stages {
-    stage('CreatePath') {
+    stage('create_path') {
       steps {
         sh "mkdir -p ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
       }
     }
-	
+
 	stage('compile') {
       steps {
         sh 'mvn clean package -P${ENV_BRANCH} -Dmaven.test.skip=true'
       }
     }
-
-    stage('cp') {
+    stage('cp_jar') {
       steps {
-        sh '/usr/bin/cp -f ./target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
+        sh '/usr/bin/cp -f ${PROJECT_NAME}/target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
       }
     }
-	
+
 	stage('dockerfile') {
 	  environment {
 		dockerfile_path = "${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
@@ -39,10 +38,16 @@ pipeline {
         sh '/usr/bin/cp -f ${DOCKERFILE_SOURCE} ${dockerfile_path}/ && sed -i "s/branch/${ENV_BRANCH}/" ${dockerfile_path}/Dockerfile'
       }
     }
-	
+
+	stage('remove_last_stack') {
+		steps {
+			sh "docker stack ls | grep ${PROJECT_NAME} | if [ 'awk {print $1}' != '' ] ; then docker stack rm ${PROJECT_NAME}; fi"
+		}
+	}
+
 	stage('build') {
       steps {
-        sh 'docker build -t ${REPOSITORIES_ADDRESS}/${PROJECT_NAME} ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/'
+        sh 'docker build -t ${REPOSITORIES_ADDRESS}/${PROJECT_NAME} ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/Dockerfile'
       }
     }
 	stage('push') {
@@ -52,7 +57,7 @@ pipeline {
     }
     stage('deploy') {
       steps {
-        sh 'docker stack deploy -c ./build/docker-compose.yml ${PROJECT_NAME}'
+        sh 'docker stack deploy -c docker-compose.yml ${PROJECT_NAME}'
       }
     }
 	
