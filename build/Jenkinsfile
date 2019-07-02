@@ -1,64 +1,64 @@
 pipeline {
-  agent any
-  
-  parameters {
-	choice(name:'branch',choices:'dev\ntest\nuat\npro',description:'环境参数')
-  }
-  environment {
-    PROJECT_NAME = 'springboot-demo'
-	REPOSITORIES_ADDRESS = '192.168.86.147:5000'
-	DOCKERFILE_TARGET = '/data/dockerfile'
-	ENV_BRANCH = '${params.branch}'
-  }
-  
-  stages {
-    stage('create_path') {
-      steps {
-        sh "mkdir -p ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
-      }
-    }
+   agent any
 
-	stage('compile') {
-      steps {
-        sh 'mvn clean package -P${ENV_BRANCH} -Dmaven.test.skip=true'
-      }
-    }
-    stage('cp_jar') {
-      steps {
-        sh '/usr/bin/cp -f ./target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
-      }
-    }
+   parameters {
+ 	choice(name:'branch',choices:'dev\ntest\nuat\npro',description:'环境参数')
+   }
+   environment {
+     PROJECT_NAME = 'springboot-demo'
+ 	REPOSITORIES_ADDRESS = '192.168.86.147:5000'
+ 	DOCKERFILE_TARGET = '/data/dockerfile'
+ 	ENV_BRANCH = "${params.branch}"
+   }
 
-	stage('dockerfile') {
-	  environment {
-		dockerfile_path = "${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
-	  }
-      steps {
-        sh '/usr/bin/cp -f ./build/Dockerfile ${dockerfile_path}/ && sed -i "s/branch/${ENV_BRANCH}/" ${dockerfile_path}/Dockerfile'
-      }
-    }
+   stages {
+     stage('create_path') {
+       steps {
+         sh "mkdir -p ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
+       }
+     }
 
-	stage('remove_last_stack') {
-		steps {
-			sh "docker stack ls | grep ${PROJECT_NAME} | if [ 'awk {print ${1}}' != '' ] ; then docker stack rm ${PROJECT_NAME}; fi"
-		}
-	}
+ 	stage('compile') {
+       steps {
+         sh 'mvn clean package -P${ENV_BRANCH} -Dmaven.test.skip=true'
+       }
+     }
+     stage('cp_jar') {
+       steps {
+         sh '/usr/bin/cp -f ./target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
+       }
+     }
 
-	stage('build') {
-      steps {
-        sh 'docker build -t ${REPOSITORIES_ADDRESS}/${PROJECT_NAME} ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/Dockerfile'
-      }
-    }
-	stage('push') {
-      steps {
-        sh 'docker push ${REPOSITORIES_ADDRESS}/${PROJECT_NAME}'
-      }
-    }
-    stage('deploy') {
-      steps {
-        sh 'docker stack deploy -c ./build/docker-compose.yml ${PROJECT_NAME}'
-      }
-    }
-	
-  }
-}
+ 	stage('dockerfile') {
+ 	  environment {
+ 		dockerfile_path = "${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
+ 	  }
+       steps {
+         sh '/usr/bin/cp -f ./build/Dockerfile ${dockerfile_path}/ && sed -i "s/branch/${ENV_BRANCH}/" ${dockerfile_path}/Dockerfile'
+       }
+     }
+
+ 	stage('remove_last_stack') {
+ 		steps {
+ 			sh "docker stack ls | grep ${PROJECT_NAME} | if [ 'awk {print ${1}}' != '' ] ; then docker stack rm ${PROJECT_NAME}; fi"
+ 		}
+ 	}
+
+ 	stage('build') {
+       steps {
+         sh 'docker build -t ${REPOSITORIES_ADDRESS}/${PROJECT_NAME} ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/Dockerfile'
+       }
+     }
+ 	stage('push') {
+       steps {
+         sh 'docker push ${REPOSITORIES_ADDRESS}/${PROJECT_NAME}'
+       }
+     }
+     stage('deploy') {
+       steps {
+         sh 'docker stack deploy -c ./build/docker-compose.yml ${PROJECT_NAME}'
+       }
+     }
+
+   }
+ }
