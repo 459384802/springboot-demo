@@ -41,7 +41,7 @@ pipeline {
 
 	stage('remove_last_stack') {
 		steps {
-			sh "docker stack ls | grep ${PROJECT_NAME} | if [ 'awk {print $1}' != '' ] ; then docker stack rm ${PROJECT_NAME}; fi"
+			sh "docker stack ls | grep ${PROJECT_NAME} | if [ 'awk {print ${1}}' != '' ] ; then docker stack rm ${PROJECT_NAME}; fi"
 		}
 	}
 
