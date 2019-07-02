@@ -46,7 +46,7 @@ pipeline {
 
  	stage('build') {
        steps {
-         sh 'docker build -t ${REPOSITORIES_ADDRESS}/${PROJECT_NAME} ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/Dockerfile'
+         sh 'docker build -t ${REPOSITORIES_ADDRESS}/${PROJECT_NAME} ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/'
        }
      }
  	stage('push') {
