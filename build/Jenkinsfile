@@ -7,9 +7,8 @@ pipeline {
   environment {
     PROJECT_NAME = 'springboot-demo'
 	REPOSITORIES_ADDRESS = '192.168.86.147:5000'
-	DOCKERFILE_SOURCE = './build/Dockerfile'
 	DOCKERFILE_TARGET = '/data/dockerfile'
-	ENV_BRANCH = "${params.branch}"
+	ENV_BRANCH = '${params.branch}'
   }
   
   stages {
@@ -26,7 +25,7 @@ pipeline {
     }
     stage('cp_jar') {
       steps {
-        sh '/usr/bin/cp -f ${PROJECT_NAME}/target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
+        sh '/usr/bin/cp -f ./target/${PROJECT_NAME}.jar ${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}/app.jar'
       }
     }
 
@@ -35,7 +34,7 @@ pipeline {
 		dockerfile_path = "${DOCKERFILE_TARGET}/${PROJECT_NAME}/${ENV_BRANCH}"
 	  }
       steps {
-        sh '/usr/bin/cp -f ${DOCKERFILE_SOURCE} ${dockerfile_path}/ && sed -i "s/branch/${ENV_BRANCH}/" ${dockerfile_path}/Dockerfile'
+        sh '/usr/bin/cp -f ./build/Dockerfile ${dockerfile_path}/ && sed -i "s/branch/${ENV_BRANCH}/" ${dockerfile_path}/Dockerfile'
       }
     }
 
@@ -57,7 +56,7 @@ pipeline {
     }
     stage('deploy') {
       steps {
-        sh 'docker stack deploy -c docker-compose.yml ${PROJECT_NAME}'
+        sh 'docker stack deploy -c ./build/docker-compose.yml ${PROJECT_NAME}'
       }
     }
 	
