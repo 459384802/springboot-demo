@@ -1,5 +1,5 @@
 FROM java:8-jre-alpine
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo 'Asia/Shanghai' >/etc/timezone
 
 ADD app.jar /app.jar
 EXPOSE 80
